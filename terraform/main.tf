@@ -8,7 +8,8 @@ terraform {
 }
 
 provider "aws" {
-  region = var.region
+  region  = var.region
+  profile = var.profile
 }
 
 resource "aws_s3_bucket" "bucket" {
@@ -47,7 +48,7 @@ resource "aws_cloudfront_origin_access_identity" "origin_access_identity" {
 
 resource "aws_cloudfront_distribution" "website_distribution" {
   origin {
-    domain_name = aws_s3_bucket_website_configuration.website.website_endpoint
+    domain_name = aws_s3_bucket.bucket.bucket_regional_domain_name
     origin_id   = "S3Origin"
 
     s3_origin_config {
@@ -91,7 +92,7 @@ resource "aws_s3_bucket_policy" "bucket_policy" {
       {
         Effect = "Allow",
         Principal = {
-          AWS = aws_cloudfront_origin_access_identity.origin_access_identity.cloudfront_access_identity_path
+          AWS = aws_cloudfront_origin_access_identity.origin_access_identity.iam_arn
         },
         Action   = "s3:GetObject",
         Resource = "${aws_s3_bucket.bucket.arn}/*"
